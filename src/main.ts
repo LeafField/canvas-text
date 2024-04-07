@@ -1,7 +1,7 @@
 import "./style.css";
 
 window.addEventListener("load", () => {
-  const textInput = document.querySelector<HTMLInputElement>(".textInput");
+  // const textInput = document.querySelector<HTMLInputElement>(".textInput");
   const canvas = document.querySelector<HTMLCanvasElement>(".canvas1");
   const ctx = canvas?.getContext("2d");
   if (!ctx || !canvas) return;
@@ -9,11 +9,51 @@ window.addEventListener("load", () => {
   canvas.height = window.innerHeight;
 
   class Particle {
-    constructor() {}
-    draw() {}
-    update() {}
-  }
+    originX: number;
+    originY: number;
+    x: number;
+    y: number;
+    size: number;
+    dx: number;
+    dy: number;
+    vx: number;
+    vy: number;
+    force: number;
+    angle: number;
+    distance: number;
+    friction: number;
+    ease: number;
 
+    constructor(
+      private effect: Effect,
+      x: number,
+      y: number,
+      private color: string
+    ) {
+      this.x = Math.random() * this.effect.canvasWidth;
+      this.y = this.effect.canvasHeight;
+      this.originX = x;
+      this.originY = y;
+      this.size = this.effect.gap;
+      this.dx = 0;
+      this.dy = 0;
+      this.vx = 0;
+      this.vy = 0;
+      this.force = 0;
+      this.angle = 0;
+      this.distance = 0;
+      this.friction = Math.random() * 0.6 + 0.15;
+      this.ease = Math.random() * 0.1 + 0.005;
+    }
+    draw() {
+      this.effect.context.fillStyle = this.color;
+      this.effect.context.fillRect(this.x, this.y, this.size, this.size);
+    }
+    update() {
+      this.x += (this.originX - this.x) * this.ease;
+      this.y += (this.originY - this.y) * this.ease;
+    }
+  }
   class Effect {
     textX: number;
     textY: number;
@@ -21,14 +61,14 @@ window.addEventListener("load", () => {
     maxTextWidth: number;
     lineHeight: number;
     textInput: HTMLInputElement;
-    particles: any[];
+    particles: Particle[];
     gap: number;
     mouse: { radius: number; x: number; y: number };
 
     constructor(
-      private context: CanvasRenderingContext2D,
-      private canvasWidth: number,
-      private canvasHeight: number
+      public context: CanvasRenderingContext2D,
+      public canvasWidth: number,
+      public canvasHeight: number
     ) {
       this.textX = this.canvasWidth / 2;
       this.textY = this.canvasHeight / 2;
@@ -113,6 +153,8 @@ window.addEventListener("load", () => {
         this.canvasWidth,
         this.canvasHeight
       ).data;
+      this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
       for (let y = 0; y < this.canvasHeight; y += this.gap) {
         for (let x = 0; x < this.canvasWidth; x += this.gap) {
           const index = (y * this.canvasWidth + x) * 4;
@@ -122,37 +164,27 @@ window.addEventListener("load", () => {
             const green = pixels[index + 1];
             const blue = pixels[index + 2];
             const color = `rgb(${red}, ${green}, ${blue})`;
+            this.particles.push(new Particle(this, x, y, color));
           }
         }
       }
     }
-    render() {}
+    render() {
+      this.particles.forEach((particle) => {
+        particle.update();
+        particle.draw();
+      });
+    }
   }
 
   const effect = new Effect(ctx, canvas.width, canvas.height);
   effect.wrapText("Hello How are you");
+  effect.render();
 
-  function animate() {}
-
-  // const wrapText = (text: string) => {
-  //   const linesArray = [];
-  //   let lineCounter = 0;
-  //   let line = "";
-  //   const words = text.split(" ");
-  //   for (let i = 0; i < words.length; i++) {
-  //     let testLine = line + words[i] + " ";
-  //     if (ctx.measureText(testLine).width > maxTextWidth) {
-  //       line = words[i] + " ";
-  //       lineCounter++;
-  //     } else {
-  //       line = testLine;
-  //     }
-  //     linesArray[lineCounter] = line;
-  //   }
-  //   const textHeight = lineHeight * lineCounter;
-  //   const textY = canvas.height / 2 - textHeight / 2;
-  //   linesArray.forEach((el, index) => {
-  //     ctx.fillText(el, canvas.width / 2, textY + index * lineHeight);
-  //   });
-  // };
+  function animate() {
+    ctx?.clearRect(0, 0, canvas!.width, canvas!.height);
+    effect.render();
+    requestAnimationFrame(animate);
+  }
+  animate();
 });
