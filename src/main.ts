@@ -3,7 +3,7 @@ import "./style.css";
 window.addEventListener("load", () => {
   // const textInput = document.querySelector<HTMLInputElement>(".textInput");
   const canvas = document.querySelector<HTMLCanvasElement>(".canvas1");
-  const ctx = canvas?.getContext("2d");
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true });
   if (!ctx || !canvas) return;
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -50,10 +50,24 @@ window.addEventListener("load", () => {
       this.effect.context.fillRect(this.x, this.y, this.size, this.size);
     }
     update() {
-      this.x += (this.originX - this.x) * this.ease;
-      this.y += (this.originY - this.y) * this.ease;
+      this.dx = this.effect.mouse.x - this.x;
+      this.dy = this.effect.mouse.y - this.y;
+      this.distance = Math.sqrt(this.dx ** 2 + this.dy ** 2);
+      this.force = -this.effect.mouse.radius / this.distance;
+
+      if (this.distance < this.effect.mouse.radius) {
+        this.angle = Math.atan2(this.dy, this.dx);
+        this.vx += this.force * Math.cos(this.angle);
+        this.vy += this.force * Math.sin(this.angle);
+      }
+
+      this.x +=
+        (this.vx *= this.friction) + (this.originX - this.x) * this.ease;
+      this.y +=
+        (this.vy *= this.friction) + (this.originY - this.y) * this.ease;
     }
   }
+
   class Effect {
     textX: number;
     textY: number;
@@ -84,9 +98,9 @@ window.addEventListener("load", () => {
         }
       });
       this.particles = [];
-      this.gap = 3;
+      this.gap = 1;
       this.mouse = {
-        radius: 20000,
+        radius: 200,
         x: 0,
         y: 0,
       };
@@ -110,9 +124,9 @@ window.addEventListener("load", () => {
       this.context.fillStyle = gradient;
       this.context.textAlign = "center";
       this.context.textBaseline = "middle";
-      this.context.lineWidth = 3;
-      this.context.strokeStyle = "white";
-      this.context.font = this.fontSize + "px Helvetica";
+      this.context.lineWidth = 1;
+      this.context.strokeStyle = "red";
+      this.context.font = this.fontSize + "px Lobster";
 
       let linesArray = [];
       let words = text.split(" ");
@@ -145,6 +159,7 @@ window.addEventListener("load", () => {
       });
       this.convertToParticles();
     }
+
     convertToParticles() {
       this.particles = [];
       const pixels = this.context.getImageData(
@@ -178,7 +193,7 @@ window.addEventListener("load", () => {
   }
 
   const effect = new Effect(ctx, canvas.width, canvas.height);
-  effect.wrapText("Hello How are you");
+  effect.wrapText(effect.textInput.value);
   effect.render();
 
   function animate() {
