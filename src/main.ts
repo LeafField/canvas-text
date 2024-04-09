@@ -43,12 +43,13 @@ window.addEventListener("load", () => {
       this.angle = 0;
       this.distance = 0;
       this.friction = Math.random() * 0.6 + 0.15;
-      this.ease = Math.random() * 0.1 + 0.005;
+      this.ease = Math.random() * 0.1 + 0.01;
     }
     draw() {
       this.effect.context.fillStyle = this.color;
       this.effect.context.fillRect(this.x, this.y, this.size, this.size);
     }
+
     update() {
       this.dx = this.effect.mouse.x - this.x;
       this.dy = this.effect.mouse.y - this.y;
@@ -190,6 +191,13 @@ window.addEventListener("load", () => {
         particle.draw();
       });
     }
+    resize(width: number, height: number) {
+      this.canvasWidth = width;
+      this.canvasHeight = height;
+      this.textX = this.canvasWidth / 2;
+      this.textY = this.canvasHeight / 2;
+      this.maxTextWidth = this.canvasWidth * 0.8;
+    }
   }
 
   const effect = new Effect(ctx, canvas.width, canvas.height);
@@ -202,4 +210,11 @@ window.addEventListener("load", () => {
     requestAnimationFrame(animate);
   }
   animate();
+
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    effect.resize(canvas.width, canvas.height);
+    effect.wrapText(effect.textInput.value);
+  });
 });
