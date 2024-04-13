@@ -34,7 +34,7 @@ window.addEventListener("load", () => {
       this.y = this.effect.canvasHeight;
       this.originX = x;
       this.originY = y;
-      this.size = this.effect.gap;
+      this.size = this.effect.gap / 3;
       this.dx = 0;
       this.dy = 0;
       this.vx = 0;
@@ -87,7 +87,7 @@ window.addEventListener("load", () => {
     ) {
       this.textX = this.canvasWidth / 2;
       this.textY = this.canvasHeight / 2;
-      this.fontSize = 100;
+      this.fontSize = 300;
       this.lineHeight = 80;
       this.maxTextWidth = this.canvasWidth * 0.8;
       this.textInput = document.querySelector<HTMLInputElement>(".textInput")!;
@@ -99,7 +99,7 @@ window.addEventListener("load", () => {
         }
       });
       this.particles = [];
-      this.gap = 1;
+      this.gap = 15;
       this.mouse = {
         radius: 200,
         x: 0,
@@ -125,9 +125,9 @@ window.addEventListener("load", () => {
       this.context.fillStyle = gradient;
       this.context.textAlign = "center";
       this.context.textBaseline = "middle";
-      this.context.lineWidth = 1;
-      this.context.strokeStyle = "red";
-      this.context.font = this.fontSize + "px Lobster";
+      this.context.lineWidth = 2;
+      this.context.strokeStyle = gradient;
+      this.context.font = this.fontSize + "px sans serif";
 
       let linesArray = [];
       let words = text.split(" ");
@@ -185,11 +185,41 @@ window.addEventListener("load", () => {
         }
       }
     }
+
+    constellations() {
+      const position = this.particles[0].size / 2;
+      for (let a = 0; a < this.particles.length; a++) {
+        for (let b = a; b < this.particles.length; b++) {
+          const dx = this.particles[a].x - this.particles[b].x;
+          const dy = this.particles[a].y - this.particles[b].y;
+          const distance = Math.hypot(dy, dx);
+          const connectDistance = this.gap * 2.1;
+          if (distance < connectDistance) {
+            const opacity = 1 - distance / connectDistance;
+            this.context.beginPath();
+            this.context.moveTo(
+              this.particles[a].x + position,
+              this.particles[a].y + position
+            );
+            this.context.lineTo(
+              this.particles[b].x + position,
+              this.particles[b].y + position
+            );
+            this.context.save();
+            this.context.globalAlpha = opacity;
+            this.context.stroke();
+            this.context.restore();
+          }
+        }
+      }
+    }
+
     render() {
       this.particles.forEach((particle) => {
         particle.update();
         particle.draw();
       });
+      this.constellations();
     }
     resize(width: number, height: number) {
       this.canvasWidth = width;
