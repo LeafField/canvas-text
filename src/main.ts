@@ -187,6 +187,7 @@ window.addEventListener("load", () => {
     }
 
     constellations() {
+      if (!this.particles[0]) return;
       const position = this.particles[0].size / 2;
       for (let a = 0; a < this.particles.length; a++) {
         for (let b = a; b < this.particles.length; b++) {
@@ -195,6 +196,7 @@ window.addEventListener("load", () => {
           const distance = Math.hypot(dy, dx);
           const connectDistance = this.gap * 2.1;
           if (distance < connectDistance) {
+            this.context.save();
             const opacity = 1 - distance / connectDistance;
             this.context.beginPath();
             this.context.moveTo(
@@ -205,7 +207,6 @@ window.addEventListener("load", () => {
               this.particles[b].x + position,
               this.particles[b].y + position
             );
-            this.context.save();
             this.context.globalAlpha = opacity;
             this.context.stroke();
             this.context.restore();
